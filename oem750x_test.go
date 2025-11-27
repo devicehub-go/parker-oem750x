@@ -16,16 +16,16 @@ func TestMoveOneRound(t *testing.T) {
 			PortName: "/dev/ttyUSB0",
 			BaudRate: 9600,
 			DataBits: 8,
-			StopBits: 1,
+			StopBits: unicommserial.OneStopBit,
 			Parity:   unicommserial.NoParity,
 		},
 	})
 	if err := parker.Connect(); err != nil {
-		panic(err)
+		panic("Connection" + err.Error())
 	}
 	defer parker.Disconnect()
 
-	var channel uint = 1
+	var channel uint = 4
 	if err := parker.SetNormalMode(channel); err != nil {
 		panic(err)
 	}

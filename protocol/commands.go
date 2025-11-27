@@ -63,6 +63,34 @@ func (o *OEM750x) GoAll() error {
 }
 
 /*
+Executes the homing procedure with the current settings
+*/
+func (o *OEM750x) GoHome(channel uint, direction Direction, speed float64) error {
+	if speed < 0.01 || 50 < speed {
+		return fmt.Errorf("speed must be between 0.01 and 50.00, got %.2f", speed)
+	}
+	if direction != Forward && direction != Backward {
+		return fmt.Errorf("direction must be '+' (forward) or '-' (backward), got %s", direction)
+	}
+	msg := fmt.Sprintf("%dGH%s%.2f", channel, direction, speed)
+	return o.Write(msg)
+}
+
+/*
+Executes the homing procedure for all motors
+*/
+func (o *OEM750x) GoHomeAll(direction Direction, speed float64) error {
+	if speed < 0.01 || 50 < speed {
+		return fmt.Errorf("speed must be between 0.01 and 50.00, got %.2f", speed)
+	}
+	if direction != Forward && direction != Backward {
+		return fmt.Errorf("direction must be '+' (forward) or '-' (backward), got %s", direction)
+	}
+	msg := fmt.Sprintf("GH%s%.2f", direction, speed)
+	return o.Write(msg)
+}
+
+/*
 Stops the motor
 */
 func (o *OEM750x) Stop(channel uint) error {

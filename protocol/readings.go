@@ -43,6 +43,32 @@ func (o *OEM750x) GetIndexerStatus(channel uint) (IndexerStatus, error) {
 }
 
 /*
+Gets the closed loop status
+
+The response is a 2-character string where:
+- The first indicates if at the last move the indexer detected a stall
+- The second indicates if the homing procedures occurs sucessfully
+*/
+func (o *OEM750x) GetClosedLoopStatus(channel uint) (string, error) {
+	msg := fmt.Sprintf("%dRA", channel)
+	response, err := o.RequestString(msg, true)
+	if err != nil {
+		return "", err
+	}
+	switch response {
+	case "@":
+		return "01", nil
+	case "A":
+		return "11", nil
+	case "B":
+		return "00", nil
+	case "C":
+		return "10", nil
+	}
+	return "", fmt.Errorf("invalid limits status response: %s", response)
+}
+
+/*
 Retrieves the status of the end-of-travel limits for the specified channel.
 
 The response is a 4-character string where:

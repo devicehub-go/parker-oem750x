@@ -8,6 +8,7 @@ type IndexerMode uint
 type Polarity uint
 type DisableSwitch uint
 type Direction string
+type Edge uint
 
 const (
 	Incremental    MovementMode  = 0
@@ -25,6 +26,8 @@ const (
 	Forward        Direction     = "+"
 	Backward       Direction     = "-"
 	Toggle         Direction     = ""
+	EdgeCW         Edge          = 0
+	EdgeCCW        Edge          = 1
 )
 
 /*
@@ -48,6 +51,42 @@ func (o *OEM750x) SetEndLimitsState(channel uint, mode SwitchState) error {
 		return fmt.Errorf("invalid switch state: %d", mode)
 	}
 	msg := fmt.Sprintf("%dOSA%d", channel, mode)
+	return o.Write(msg)
+}
+
+/*
+Sets back up to home, that when is active reversing over
+the selected edge to ensure a precise and repeatable home position.
+*/
+func (o *OEM750x) SetBackUpHome(channel uint, status bool) error {
+	var value int = 0
+	if status {
+		value = 1
+	}
+	msg := fmt.Sprintf("%dOSB%d", channel, value)
+	return o.Write(msg)
+}
+
+/*
+Sets the active state of home switch, 0 (active is closed) and
+1 (active is open)
+*/
+func (o *OEM750x) SetActiveStateHomeSwitch(channel uint, state SwitchState) error {
+	if state != NormallyClosed && state != NormallyOpen {
+		return fmt.Errorf("active state must be 0 (closed) or 1 (open), got %d", state)
+	}
+	msg := fmt.Sprintf("%dOSC%d", channel, state)
+	return o.Write(msg)
+}
+
+/*
+Sets the reference edge of home switch
+*/
+func (o *OEM750x) SetHomeEdge(channel uint, edge Edge) error {
+	if edge != EdgeCW && edge != EdgeCCW {
+		return fmt.Errorf("edge must be 0 (CW) or 1 (CCW), got %d", edge)
+	}
+	msg := fmt.Sprintf("%dOSH%d", channel, edge)
 	return o.Write(msg)
 }
 
