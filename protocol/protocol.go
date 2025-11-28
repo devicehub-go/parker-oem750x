@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"sync"
 
 	"github.com/devicehub-go/unicomm"
 )
@@ -14,6 +15,7 @@ const (
 
 type OEM750x struct {
 	Communication unicomm.Unicomm
+	mutex         sync.Mutex
 }
 
 /*
@@ -80,6 +82,7 @@ func (o *OEM750x) Request(message string) ([]byte, error) {
 	if !o.IsConnected() {
 		return nil, fmt.Errorf("device not connected")
 	}
+	o.mutex.Lock()
 	err := o.Write(message)
 	if err != nil {
 		return nil, err
@@ -88,6 +91,7 @@ func (o *OEM750x) Request(message string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	o.mutex.Unlock()
 	return cleanResponse(response), nil
 }
 

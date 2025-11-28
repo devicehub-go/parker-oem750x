@@ -1,6 +1,8 @@
 package protocol
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type MovementMode uint
 type SwitchState uint

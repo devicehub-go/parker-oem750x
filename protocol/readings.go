@@ -46,8 +46,10 @@ func (o *OEM750x) GetIndexerStatus(channel uint) (IndexerStatus, error) {
 Gets the closed loop status
 
 The response is a 2-character string where:
-- The first indicates if at the last move the indexer detected a stall
-- The second indicates if the homing procedures occurs sucessfully
+  - The first indicates static position loss
+  - The second indicates post move position loss
+  - The third indicates homing function failure
+  - The forth indicates a stall
 */
 func (o *OEM750x) GetClosedLoopStatus(channel uint) (string, error) {
 	msg := fmt.Sprintf("%dRA", channel)
@@ -57,23 +59,39 @@ func (o *OEM750x) GetClosedLoopStatus(channel uint) (string, error) {
 	}
 	switch response {
 	case "@":
-		return "01", nil
+		return "0000", nil
 	case "A":
-		return "11", nil
+		return "1000", nil
 	case "B":
-		return "00", nil
-	case "C":
-		return "10", nil
+		return "0100", nil
+	case "D":
+		return "0010", nil
+	case "E":
+		return "1010", nil
+	case "F":
+		return "0110", nil
+	case "H":
+		return "0001", nil
+	case "I":
+		return "1001", nil
+	case "J":
+		return "0101", nil
+	case "L":
+		return "0011", nil
+	case "M":
+		return "1011", nil
+	case "N":
+		return "0111", nil
 	}
-	return "", fmt.Errorf("invalid limits status response: %s", response)
+	return "", fmt.Errorf("invalid closed loop status response: %s", response)
 }
 
 /*
 Retrieves the status of the end-of-travel limits for the specified channel.
 
 The response is a 4-character string where:
-- The first two characters represent the last move terminated by CW and CCW limits.
-- The last two characters represent the current condition of CW and CCW limits.
+  - The first two characters represent the last move terminated by CW and CCW limits.
+  - The last two characters represent the current condition of CW and CCW limits.
 */
 func (o *OEM750x) GetLimitsStatus(channel uint) (string, error) {
 	msg := fmt.Sprintf("%dRA", channel)

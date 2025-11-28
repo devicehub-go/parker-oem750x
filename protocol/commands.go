@@ -1,6 +1,9 @@
 package protocol
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 /*
 Sets motor to operate in the mode where the it
@@ -88,6 +91,67 @@ func (o *OEM750x) GoHomeAll(direction Direction, speed float64) error {
 	}
 	msg := fmt.Sprintf("GH%s%.2f", direction, speed)
 	return o.Write(msg)
+}
+
+/*
+Executes the homing procedure when just exists CW or CCW limits switches.
+This function blocks until the procedure is finished
+*/
+func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64) error {
+	var limitReached bool = false
+	var limitSwitchReleased bool = false
+
+	if err := o.Stop(channel); err != nil {
+		return err
+	} else if err := o.SetTargetVelocity(channel, velocity); err != nil {
+		return err
+	} else if err := o.SetDirection(channel, direction); err != nil {
+		return err
+	} else if err := o.SetContinuosMode(channel); err != nil {
+		return err
+	} else if err := o.Go(channel); err != nil {
+		return err
+	}
+
+	for !limitReached {
+		status, err := o.GetLimitsStatus(channel)
+		if err != nil {
+			return err
+		}
+		if direction == Forward {
+			limitReached = status[2] == '1'
+		} else {
+			limitReached = status[3] == '1'
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	if err := o.SetTargetVelocity(channel, 0.01); err != nil {
+		return err
+	} else if err := o.SetDirection(channel, Toggle); err != nil {
+		return err
+	} else if err := o.Go(channel); err != nil {
+		return err
+	}
+
+	for !limitSwitchReleased {
+		status, err := o.GetLimitsStatus(channel)
+		if err != nil {
+			return err
+		}
+		if direction == Forward {
+			limitSwitchReleased = status[2] == '0'
+		} else {
+			limitSwitchReleased = status[3] == '0'
+		}
+	}
+
+	if err := o.Stop(channel); err != nil {
+		return err
+	} else if err := o.SetAbsoluteMode(channel); err != nil {
+		return err
+	}
+	return o.SetZeroPosition(channel)
 }
 
 /*
