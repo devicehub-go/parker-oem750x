@@ -46,6 +46,9 @@ func (o *OEM750x) Write(message string) error {
 	if !o.IsConnected() {
 		return fmt.Errorf("device not connected")
 	}
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+
 	err := o.Communication.Write([]byte(message + CR))
 	if err != nil {
 		return err
@@ -83,15 +86,23 @@ func (o *OEM750x) Request(message string) ([]byte, error) {
 		return nil, fmt.Errorf("device not connected")
 	}
 	o.mutex.Lock()
-	err := o.Write(message)
+	defer o.mutex.Unlock()
+
+	err := o.Communication.Write([]byte(message + CR))
 	if err != nil {
 		return nil, err
+	}
+	echo, err := o.Communication.ReadUntil(CR)
+	if err != nil {
+		return nil, err
+	}
+	if string(echo) != message+CR {
+		return nil, fmt.Errorf("unexpected response: %s", string(echo))
 	}
 	response, err := o.Communication.ReadUntil(CR)
 	if err != nil {
 		return nil, err
 	}
-	o.mutex.Unlock()
 	return cleanResponse(response), nil
 }
 
