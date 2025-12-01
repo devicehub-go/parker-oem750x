@@ -97,7 +97,7 @@ func (o *OEM750x) GoHomeAll(direction Direction, speed float64) error {
 Executes the homing procedure when just exists CW or CCW limits switches.
 This function blocks until the procedure is finished
 */
-func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64, limitSwitch string) error {
+func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
 	var limitReached bool = false
 	var limitSwitchReleased bool = false
 
@@ -105,7 +105,7 @@ func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64
 		return err
 	} else if err := o.SetTargetVelocity(channel, velocity); err != nil {
 		return err
-	} else if err := o.SetDirection(channel, direction); err != nil {
+	} else if err := o.SetDirection(channel, Backward); err != nil {
 		return err
 	} else if err := o.SetContinuosMode(channel); err != nil {
 		return err
@@ -118,11 +118,7 @@ func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64
 		if err != nil {
 			return err
 		}
-		if limitSwitch == "CW" {
-			limitReached = status[2] == '1'
-		} else {
-			limitReached = status[3] == '1'
-		}
+		limitReached = status[3] == '1'
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -139,11 +135,7 @@ func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64
 		if err != nil {
 			return err
 		}
-		if direction == Forward {
-			limitSwitchReleased = status[2] == '0'
-		} else {
-			limitSwitchReleased = status[3] == '0'
-		}
+		limitSwitchReleased = status[3] == '0'
 	}
 
 	if err := o.Stop(channel); err != nil {

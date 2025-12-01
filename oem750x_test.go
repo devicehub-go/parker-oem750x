@@ -128,7 +128,7 @@ func TestHoming(t *testing.T) {
 	if err := parker.SetResolution(channel, 50000); err != nil {
 		panic(err)
 	}
-	if err := parker.GoHomeHard(channel, protocol.Backward, 1, "CCW"); err != nil {
+	if err := parker.GoHomeHard(channel, 1); err != nil {
 		panic(err)
 	}
 	fmt.Println("Homing finished")
