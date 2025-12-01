@@ -97,7 +97,7 @@ func (o *OEM750x) GoHomeAll(direction Direction, speed float64) error {
 Executes the homing procedure when just exists CW or CCW limits switches.
 This function blocks until the procedure is finished
 */
-func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64) error {
+func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64, limitSwitch string) error {
 	var limitReached bool = false
 	var limitSwitchReleased bool = false
 
@@ -118,7 +118,7 @@ func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64
 		if err != nil {
 			return err
 		}
-		if direction == Forward {
+		if limitSwitch == "CW" {
 			limitReached = status[2] == '1'
 		} else {
 			limitReached = status[3] == '1'
@@ -149,6 +149,8 @@ func (o *OEM750x) GoHomeHard(channel uint, direction Direction, velocity float64
 	if err := o.Stop(channel); err != nil {
 		return err
 	} else if err := o.SetAbsoluteMode(channel); err != nil {
+		return err
+	} else if err := o.SetNormalMode(channel); err != nil {
 		return err
 	}
 	return o.SetZeroPosition(channel)

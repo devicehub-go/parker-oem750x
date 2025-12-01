@@ -14,7 +14,7 @@ func TestMoveOneRound(t *testing.T) {
 	parker := oem750x.New(unicomm.Options{
 		Protocol: unicomm.Serial,
 		Serial: unicommserial.SerialOptions{
-			PortName: "/dev/ttyUSB0",
+			PortName: "COM5",
 			BaudRate: 9600,
 			DataBits: 8,
 			StopBits: unicommserial.OneStopBit,
@@ -103,7 +103,7 @@ func TestHoming(t *testing.T) {
 	parker := oem750x.New(unicomm.Options{
 		Protocol: unicomm.Serial,
 		Serial: unicommserial.SerialOptions{
-			PortName: "/dev/ttyUSB0",
+			PortName: "COM5",
 			BaudRate: 9600,
 			DataBits: 8,
 			StopBits: unicommserial.OneStopBit,
@@ -128,7 +128,7 @@ func TestHoming(t *testing.T) {
 	if err := parker.SetResolution(channel, 50000); err != nil {
 		panic(err)
 	}
-	if err := parker.GoHomeHard(channel, protocol.Backward, 1); err != nil {
+	if err := parker.GoHomeHard(channel, protocol.Backward, 1, "CCW"); err != nil {
 		panic(err)
 	}
 	fmt.Println("Homing finished")
