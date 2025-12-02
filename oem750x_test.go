@@ -42,7 +42,7 @@ func TestMoveOneRound(t *testing.T) {
 	if err := parker.SetResolution(channel, 50000); err != nil {
 		panic(err)
 	}
-	if err := parker.SetTargetDistance(channel, 50000); err != nil {
+	if err := parker.SetTargetDistance(channel, 500000); err != nil {
 		panic(err)
 	}
 	if err := parker.Go(channel); err != nil {
@@ -66,7 +66,7 @@ func TestReadings(t *testing.T) {
 	}
 	defer parker.Disconnect()
 
-	var channel uint = 1
+	var channel uint = 4
 	partNumber, err := parker.GetPartNumber(channel)
 	if err != nil {
 		panic(err)
@@ -115,7 +115,7 @@ func TestHoming(t *testing.T) {
 	}
 	defer parker.Disconnect()
 
-	var channel uint = 4
+	var channel uint = 3
 	if err := parker.SetNormalMode(channel); err != nil {
 		panic(err)
 	}
@@ -128,8 +128,13 @@ func TestHoming(t *testing.T) {
 	if err := parker.SetResolution(channel, 50000); err != nil {
 		panic(err)
 	}
-	if err := parker.GoHomeHard(channel, 1); err != nil {
+	if err := parker.SetPolarity(channel, protocol.Inverted); err != nil {
 		panic(err)
 	}
-	fmt.Println("Homing finished")
+	if err := parker.SetDirection(channel, protocol.Forward); err != nil {
+		panic(err)
+	}
+	if err := parker.GoHomeHard(channel, 0.8); err != nil {
+		panic(err)
+	}
 }

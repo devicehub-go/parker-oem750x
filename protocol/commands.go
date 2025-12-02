@@ -100,6 +100,13 @@ This function blocks until the procedure is finished
 func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
 	var limitReached bool = false
 	var limitSwitchReleased bool = false
+	var polarity Polarity
+
+	response, err := o.GetPolarity(channel)
+	if err != nil {
+		return err
+	}
+	polarity = Polarity(response)
 
 	if err := o.Stop(channel); err != nil {
 		return err
@@ -118,7 +125,11 @@ func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
 		if err != nil {
 			return err
 		}
-		limitReached = status[3] == '1'
+		if polarity == Normal {
+			limitReached = status[2] == '1'
+		} else {
+			limitReached = status[3] == '1'
+		}
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -135,7 +146,11 @@ func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
 		if err != nil {
 			return err
 		}
-		limitSwitchReleased = status[3] == '0'
+		if polarity == Normal {
+			limitSwitchReleased = status[2] == '0'
+		} else {
+			limitSwitchReleased = status[3] == '0'
+		}
 	}
 
 	if err := o.Stop(channel); err != nil {

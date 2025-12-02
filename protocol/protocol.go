@@ -110,7 +110,7 @@ func (o *OEM750x) Request(message string) ([]byte, error) {
 Parses the drive response
 */
 func ParseValueResponse(response []byte) (string, error) {
-	var expected = regexp.MustCompile(`^\*\d+[A-Z]*(.+)$`)
+	var expected = regexp.MustCompile(`^\*\d*[A-Z]*(.+)$`)
 	responseStr := string(response)
 	matches := expected.FindStringSubmatch(responseStr)
 	if len(matches) != 2 {

@@ -115,6 +115,14 @@ func (o *OEM750x) SetPolarity(channel uint, polarity Polarity) error {
 }
 
 /*
+Gets the direction polarity of the motor
+*/
+func (o *OEM750x) GetPolarity(channel uint) (int, error) {
+	msg := fmt.Sprintf("%dCMDDIR", channel)
+	return o.RequestInt(msg)
+}
+
+/*
 Sets the resolution of the motor in steps per revolution
 */
 func (o *OEM750x) SetResolution(channel uint, value uint) error {
