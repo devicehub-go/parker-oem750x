@@ -171,6 +171,12 @@ func (o *OEM750x) SetShutdown(channel uint, enable bool) error {
 	return o.Write(msg)
 }
 
+/* Gets the shutdown status */
+func (o *OEM750x) GetShutdown(channel uint) (int, error) {
+	msg := fmt.Sprintf("%dST", channel)
+	return o.RequestInt(msg)
+}
+
 /*
 Sets disable status of end-of-travel limit switches
 */
