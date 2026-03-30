@@ -1,6 +1,7 @@
 package oem750x_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -134,7 +135,9 @@ func TestHoming(t *testing.T) {
 	if err := parker.SetDirection(channel, protocol.Forward); err != nil {
 		panic(err)
 	}
-	if err := parker.GoHomeHard(channel, 0.8); err != nil {
+
+	ctx := context.Background()
+	if err := parker.GoHomeHard(ctx, channel, 0.8); err != nil {
 		panic(err)
 	}
 }

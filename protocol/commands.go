@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -97,7 +98,7 @@ func (o *OEM750x) GoHomeAll(direction Direction, speed float64) error {
 Executes the homing procedure when just exists CW or CCW limits switches.
 This function blocks until the procedure is finished
 */
-func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
+func (o *OEM750x) GoHomeHard(ctx context.Context, channel uint, velocity float64) error {
 	var limitReached bool = false
 	var limitSwitchReleased bool = false
 	var polarity Polarity
@@ -121,16 +122,22 @@ func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
 	}
 
 	for !limitReached {
-		status, err := o.GetLimitsStatus(channel)
-		if err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			o.Stop(channel)
+			return ctx.Err()
+		default:
+			status, err := o.GetLimitsStatus(channel)
+			if err != nil {
+				return err
+			}
+			if polarity == Normal {
+				limitReached = status[2] == '1'
+			} else {
+				limitReached = status[3] == '1'
+			}
+			time.Sleep(100 * time.Millisecond)
 		}
-		if polarity == Normal {
-			limitReached = status[2] == '1'
-		} else {
-			limitReached = status[3] == '1'
-		}
-		time.Sleep(100 * time.Millisecond)
 	}
 
 	if err := o.SetTargetVelocity(channel, 0.01); err != nil {
@@ -142,14 +149,21 @@ func (o *OEM750x) GoHomeHard(channel uint, velocity float64) error {
 	}
 
 	for !limitSwitchReleased {
-		status, err := o.GetLimitsStatus(channel)
-		if err != nil {
-			return err
-		}
-		if polarity == Normal {
-			limitSwitchReleased = status[2] == '0'
-		} else {
-			limitSwitchReleased = status[3] == '0'
+		select {
+		case <-ctx.Done():
+			o.Stop(channel)
+			return ctx.Err()
+		default:
+			status, err := o.GetLimitsStatus(channel)
+			if err != nil {
+				return err
+			}
+			if polarity == Normal {
+				limitSwitchReleased = status[2] == '0'
+			} else {
+				limitSwitchReleased = status[3] == '0'
+			}
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 
