@@ -108,6 +108,10 @@ func (o *OEM750x) GoHomeHard(ctx context.Context, channel uint, velocity float64
 		return err
 	}
 	polarity = Polarity(response)
+	oldVelocity, err := o.GetTargetVelocity(channel)
+	if err != nil {
+		return err
+	}
 
 	if err := o.Stop(channel); err != nil {
 		return err
@@ -140,7 +144,7 @@ func (o *OEM750x) GoHomeHard(ctx context.Context, channel uint, velocity float64
 		}
 	}
 
-	if err := o.SetTargetVelocity(channel, 0.01); err != nil {
+	if err := o.SetTargetVelocity(channel, velocity*0.1); err != nil {
 		return err
 	} else if err := o.SetDirection(channel, Toggle); err != nil {
 		return err
@@ -172,6 +176,8 @@ func (o *OEM750x) GoHomeHard(ctx context.Context, channel uint, velocity float64
 	} else if err := o.SetAbsoluteMode(channel); err != nil {
 		return err
 	} else if err := o.SetNormalMode(channel); err != nil {
+		return err
+	} else if err := o.SetTargetVelocity(channel, oldVelocity); err != nil {
 		return err
 	}
 	return o.SetZeroPosition(channel)
