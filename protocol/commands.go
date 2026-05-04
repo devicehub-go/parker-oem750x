@@ -99,7 +99,7 @@ Executes the homing procedure when just exists CW or CCW limits switches.
 This function blocks until the procedure is finished
 */
 func (o *OEM750x) GoHomeHard(ctx context.Context, channel uint, velocity float64) error {
-	var limitReached bool = false
+	var limitReached int = 0
 	var limitSwitchReleased bool = false
 	var polarity Polarity
 
@@ -125,20 +125,31 @@ func (o *OEM750x) GoHomeHard(ctx context.Context, channel uint, velocity float64
 		return err
 	}
 
-	for !limitReached {
+	for limitReached < 5 {
 		select {
 		case <-ctx.Done():
 			o.Stop(channel)
 			return ctx.Err()
 		default:
+			is, err := o.GetIndexerStatus(channel)
+			if err != nil {
+				return err
+			}
 			status, err := o.GetLimitsStatus(channel)
 			if err != nil {
 				return err
 			}
-			if polarity == Normal {
-				limitReached = status[2] == '1'
+			if polarity == Normal && status[2] == '1' {
+				limitReached++
+			} else if polarity != Normal && status[3] == '1' {
+				limitReached++
 			} else {
-				limitReached = status[3] == '1'
+				limitReached = 0
+				if is == IndexerReady || is == IndexerReadyAttention {
+					if err := o.Go(channel); err != nil {
+						return err
+					}
+				}
 			}
 			time.Sleep(100 * time.Millisecond)
 		}
